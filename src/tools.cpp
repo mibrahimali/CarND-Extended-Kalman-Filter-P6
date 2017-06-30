@@ -72,8 +72,60 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
 	//compute the Jacobian matrix
 	Hj << (px/c2), (py/c2), 0, 0,
-		  -(py/c1), (px/c1), 0, 0,
-		  py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
+			-(py/c1), (px/c1), 0, 0,
+			py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
 
- 	return Hj;
+	return Hj;
+}
+
+
+VectorXd Tools::Cart2Polar(const VectorXd& x_state)
+{
+	VectorXd y(3);
+	y << 0,0,0;
+	if(x_state.size() != 4)
+	{
+		cout << "input size invalid, input must be of size = 4 {pos , velocity)";
+		return y;
+	}
+	//recover state parameters
+	float px = x_state(0);
+	float py = x_state(1);
+	float vx = x_state(2);
+	float vy = x_state(3);
+
+	//pre-compute a set of terms to avoid repeated calculation
+	float rho = sqrt(px*px+py*py);
+	float phi = atan2(py,px);
+	if(fabs(rho) < 0.0001){
+		cout << "Cart2Polar () - Error - Division by Zero" << endl;
+		return y;
+	}
+	float rho_dot = (px*vx + py*vy)/ rho;
+	y = VectorXd(3);
+	y << rho,phi,rho_dot;
+	return y ;
+}
+
+VectorXd Tools::Polar2Cart(const VectorXd& x_state)
+{
+	VectorXd y(4);
+	y << 0,0,0,0;
+	if(x_state.size() != 3)
+	{
+		cout << "input size invalid, input must be of size = 3 {rho,phi,roh_dot)";
+		return y;
+	}
+	//recover state parameters
+	float rho = x_state(0);
+	float phi = x_state(1);
+	float rho_dot = x_state(2);
+
+	float px = rho * cosf(phi);
+	float py = rho * sinf(phi);
+	float vx = rho_dot * cosf(phi);
+	float vy = rho_dot * sinf(phi);
+	y = VectorXd(4);
+	y << px,py,vx,vy;
+	return y;
 }

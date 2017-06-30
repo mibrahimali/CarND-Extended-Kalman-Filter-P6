@@ -61,13 +61,9 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	/* 
 	normalizing phi angle to be bound in range of pi : - pi
 	*/
-	// double phi = y(1);
-	// y(1) = ((phi / (PI)) - int((phi / (PI)))) * (PI);
-	while (y(1) < -PI)
-        y(1) += 2 * PI;
-    while (y(1) > PI)
-	y(1) -= 2 * PI;
-	// cout << "Radar Error = " << y << endl;
+	double phi = y(1);
+	y(1) = ((phi / (PI)) - int((phi / (PI)))) * (PI);
+	
 
 	MatrixXd Ht = H_.transpose();
 	MatrixXd S = H_ * P_ * Ht + R_;

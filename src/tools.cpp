@@ -83,6 +83,7 @@ VectorXd Tools::Cart2Polar(const VectorXd& x_state)
 {
 	VectorXd y(3);
 	y << 0,0,0;
+
 	if(x_state.size() != 4)
 	{
 		cout << "input size invalid, input must be of size = 4 {pos , velocity)";
@@ -96,12 +97,19 @@ VectorXd Tools::Cart2Polar(const VectorXd& x_state)
 
 	//pre-compute a set of terms to avoid repeated calculation
 	float rho = sqrt(px*px+py*py);
-	float phi = atan2(py,px);
-	if(fabs(rho) < 0.0001){
-		cout << "Cart2Polar () - Error - Division by Zero" << endl;
-		return y;
+	// check if px == 0 , this will avoid undefined behaviour of atan2 at x = 0 and y = 0 
+	if (fabs(px) < 0.001)
+	{
+		px = 0.001;
 	}
-	float rho_dot = (px*vx + py*vy)/ rho;
+	float phi = atan2(py,px);
+	
+	// check rho to avoid zero division 
+	if(rho < 0.0001){
+		rho = 0.0001;
+	}
+	float rho_dot = (px*vx + py*vy) / rho;
+	
 	y = VectorXd(3);
 	y << rho,phi,rho_dot;
 	return y ;
@@ -113,14 +121,14 @@ VectorXd Tools::Polar2Cart(const VectorXd& x_state)
 	y << 0,0,0,0;
 	if(x_state.size() != 3)
 	{
-		cout << "input size invalid, input must be of size = 3 {rho,phi,roh_dot)";
+		cout << "input size invalid, input must be of size = 3; {rho,phi,roh_dot)";
 		return y;
 	}
 	//recover state parameters
 	float rho = x_state(0);
 	float phi = x_state(1);
 	float rho_dot = x_state(2);
-
+	// project polar cordinate into cartisian 
 	float px = rho * cosf(phi);
 	float py = rho * sinf(phi);
 	float vx = rho_dot * cosf(phi);
